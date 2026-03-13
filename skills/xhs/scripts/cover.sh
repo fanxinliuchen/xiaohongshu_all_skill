@@ -152,8 +152,10 @@ fi
 # 确定 ImageMagick 命令
 if command -v magick &> /dev/null; then
   MAGICK="magick"
+  IDENTIFY_CMD=(magick identify)
 else
   MAGICK="convert"
+  IDENTIFY_CMD=(identify)
 fi
 
 echo "🎨 开始生成小红书封面图..."
@@ -555,21 +557,21 @@ render_text_block() {
 render_text_block
 
 # 检查实际渲染高度，超出则缩小字号重试
-TB_H=$($MAGICK identify -format "%h" "$TEXT_BLOCK" 2>/dev/null)
-while [ "$TB_H" -gt "$TEXT_AREA_H" ] && [ "$FONT_SIZE" -gt 40 ]; do
+TB_H=$("${IDENTIFY_CMD[@]}" -format "%h" "$TEXT_BLOCK" 2>/dev/null || true)
+while [ -n "$TB_H" ] && [ "$TB_H" -gt "$TEXT_AREA_H" ] && [ "$FONT_SIZE" -gt 40 ]; do
   FONT_SIZE=$((FONT_SIZE - 10))
   echo "   文字块高 ${TB_H}px > ${TEXT_AREA_H}px，缩小字号至 ${FONT_SIZE}px..."
   render_text_block
-  TB_H=$($MAGICK identify -format "%h" "$TEXT_BLOCK" 2>/dev/null)
+  TB_H=$("${IDENTIFY_CMD[@]}" -format "%h" "$TEXT_BLOCK" 2>/dev/null || true)
 done
 
 # 同样检查宽度，超出则缩小
-TB_W=$($MAGICK identify -format "%w" "$TEXT_BLOCK" 2>/dev/null)
-while [ "$TB_W" -gt "$TEXT_AREA_W" ] && [ "$FONT_SIZE" -gt 40 ]; do
+TB_W=$("${IDENTIFY_CMD[@]}" -format "%w" "$TEXT_BLOCK" 2>/dev/null || true)
+while [ -n "$TB_W" ] && [ "$TB_W" -gt "$TEXT_AREA_W" ] && [ "$FONT_SIZE" -gt 40 ]; do
   FONT_SIZE=$((FONT_SIZE - 10))
   echo "   文字块宽 ${TB_W}px > ${TEXT_AREA_W}px，缩小字号至 ${FONT_SIZE}px..."
   render_text_block
-  TB_W=$($MAGICK identify -format "%w" "$TEXT_BLOCK" 2>/dev/null)
+  TB_W=$("${IDENTIFY_CMD[@]}" -format "%w" "$TEXT_BLOCK" 2>/dev/null || true)
 done
 
 TB_SIZE="${TB_W}x${TB_H}"
@@ -590,7 +592,7 @@ echo "🔄 [3/3] 拼接封面图..."
 $MAGICK "$AI_RESIZED" "$TITLE_IMG" -append "$OUTPUT"
 
 # 验证最终尺寸
-FINAL_SIZE=$($MAGICK identify -format "%wx%h" "$OUTPUT" 2>/dev/null)
+FINAL_SIZE=$("${IDENTIFY_CMD[@]}" -format "%wx%h" "$OUTPUT" 2>/dev/null || true)
 echo ""
 echo "✅ 封面图生成完成！"
 echo "   路径: ${OUTPUT}"
