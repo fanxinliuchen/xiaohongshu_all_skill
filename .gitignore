@@ -1,8 +1,9 @@
 # Ignore everything by default; this repo only syncs the xhs skill
 /*
 
-# Keep gitignore itself
+# Keep repo metadata files
 !/.gitignore
+!/README.md
 
 # Allow the xhs skill subtree
 !/skills/
