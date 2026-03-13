@@ -1,1 +1,18 @@
+# Ignore everything by default; this repo only syncs the xhs skill
+/*
+
+# Keep gitignore itself
+!/.gitignore
+
+# Allow the xhs skill subtree
+!/skills/
+/skills/*
+!/skills/xhs/
+!/skills/xhs/**
+
+# Never commit local secrets
 skills/xhs/.env
+
+# Common local noise
+**/.DS_Store
+**/Thumbs.db
